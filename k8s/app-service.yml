@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: kube-news
+  namespace: devops-aula01
 spec:
   type: LoadBalancer
   selector:
