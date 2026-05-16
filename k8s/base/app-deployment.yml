@@ -12,6 +12,20 @@ spec:
       labels:
         app: kube-news
     spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - until pg_isready -h postgres -p 5432 -U kubedevnews; do echo "aguardando postgres..."; sleep 2; done
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
       containers:
         - name: kube-news
           image: 030100501/kube-news:latest
@@ -45,3 +59,10 @@ spec:
                 secretKeyRef:
                   name: kube-news-secret
                   key: db-ssl-require
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
