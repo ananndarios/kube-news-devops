@@ -1,0 +1,38 @@
+name: CD - Deploy no Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy no Cluster
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configura o kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configura o kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Cria o Secret no namespace devops-aula01
+        run: |
+          kubectl create secret generic kube-news-secret \
+            --from-literal=db-database=${{ secrets.DB_DATABASE }} \
+            --from-literal=db-username=${{ secrets.DB_USERNAME }} \
+            --from-literal=db-password=${{ secrets.DB_PASSWORD }} \
+            --from-literal=db-port=${{ secrets.DB_PORT }} \
+            --from-literal=db-ssl-require=${{ secrets.DB_SSL_REQUIRE }} \
+            --namespace devops-aula01 \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy no ambiente prod
+        run: kubectl apply -k k8s/overlays/prod/ --namespace devops-aula01
