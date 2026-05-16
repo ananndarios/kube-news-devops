@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-news
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kube-news
+  template:
+    metadata:
+      labels:
+        app: kube-news
+    spec:
+      containers:
+        - name: kube-news
+          image: 030100501/kube-news:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: kube-news-secret
+                  key: db-database
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: kube-news-secret
+                  key: db-username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kube-news-secret
+                  key: db-password
+            - name: DB_HOST
+              value: postgres
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: kube-news-secret
+                  key: db-port
+            - name: DB_SSL_REQUIRE
+              valueFrom:
+                secretKeyRef:
+                  name: kube-news-secret
+                  key: db-ssl-require

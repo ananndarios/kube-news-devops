@@ -1,0 +1,43 @@
+services:
+  app:
+    build: .
+    container_name: kube-news-app
+    ports:
+      - "8080:8080"
+    environment:
+      DB_DATABASE: kubedevnews
+      DB_USERNAME: kubedevnews
+      DB_PASSWORD: Pg#123
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_SSL_REQUIRE: "false"
+    volumes:
+      - ./src:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: kube-news-db
+    environment:
+      POSTGRES_DB: kubedevnews
+      POSTGRES_USER: kubedevnews
+      POSTGRES_PASSWORD: Pg#123
+    ports:
+      - "5432:5432"
+
+  
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kubedevnews -d kubedevnews"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

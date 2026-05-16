@@ -104,3 +104,8 @@ node_modules/
 # .tern-port
 
 *.Identifier
+
+# Kubernetes - arquivos sensíveis
+k8s/secret.yml
+*kubeconfig*
+*.kubeconfig
