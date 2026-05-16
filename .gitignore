@@ -107,5 +107,7 @@ node_modules/
 
 # Kubernetes - arquivos sensíveis
 k8s/secret.yml
+k8s/overlays/**/secret.yml
+k8s/base/secret.yml
 *kubeconfig*
 *.kubeconfig

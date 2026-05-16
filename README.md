@@ -39,6 +39,21 @@ O projeto Kube-News é uma aplicação web simples desenvolvida em Node.js, proj
 │   ├── server.js             # Ponto de entrada da aplicação
 │   ├── system-life.js        # Endpoints de health check
 │   └── package.json          # Dependências
+├── k8s/                      # Manifestos Kubernetes (Kustomize)
+│   ├── base/                 # Recursos base compartilhados entre ambientes
+│   │   ├── kustomization.yaml
+│   │   ├── app-deployment.yml
+│   │   ├── app-service.yml
+│   │   ├── postgres-deployment.yml
+│   │   ├── postgres-service.yml
+│   │   └── postgres-pvc.yml
+│   └── overlays/             # Customizações por ambiente
+│       ├── dev/              # Desenvolvimento (1 réplica)
+│       ├── hom/              # Homologação (1 réplica)
+│       └── prod/             # Produção (3 réplicas)
+├── Dockerfile                # Build da imagem da aplicação
+├── docker-compose.yml        # Ambiente local com app + PostgreSQL
+├── .mcp.json                 # MCP server Kubernetes para Claude Code
 ├── popula-dados.http         # Arquivo para popular o banco com dados de exemplo
 └── README.md                 # Documentação
 ```
@@ -49,8 +64,9 @@ O projeto Kube-News é uma aplicação web simples desenvolvida em Node.js, proj
 
 - Node.js
 - PostgreSQL
-- Docker (opcional, para containerização)
-- Kubernetes (opcional, para orquestração)
+- Docker
+- Kubernetes + kubectl
+- Imagem publicada no Docker Hub: `030100501/kube-news:latest`
 
 ### Variáveis de Ambiente
 
@@ -81,6 +97,40 @@ Para configurar a aplicação, defina as seguintes variáveis de ambiente:
    npm start
    ```
 5. Acesse a aplicação em [http://localhost:8080](http://localhost:8080)
+
+### Execução com Docker Compose
+
+```bash
+docker compose up -d
+```
+
+Acesse em [http://localhost:8080](http://localhost:8080)
+
+### Deploy no Kubernetes
+
+Antes de aplicar, crie o Secret com as credenciais do banco em cada namespace:
+
+```bash
+kubectl create secret generic kube-news-secret -n <namespace> \
+  --from-literal=db-database=kubedevnews \
+  --from-literal=db-username=kubedevnews \
+  --from-literal=db-password='Pg#123' \
+  --from-literal=db-port=5432 \
+  --from-literal=db-ssl-require=false
+```
+
+Aplique o ambiente desejado:
+
+```bash
+# Desenvolvimento
+kubectl apply -k k8s/overlays/dev/
+
+# Homologação
+kubectl apply -k k8s/overlays/hom/
+
+# Produção
+kubectl apply -k k8s/overlays/prod/
+```
 
 ### População de Dados de Exemplo
 
